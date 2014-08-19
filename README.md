@@ -20,4 +20,32 @@ Usage
 
 TBD
 
+Add the following to `composer.json` file in your project root:
+
+
+```
+    ...
+    "scripts": {
+        ...
+        "post-update-cmd": [
+            "zyx\\unbloat\\Helper::postCmd"
+        ]
+        ...
+    },
+    "extra": {
+        ...
+        "ignore": {
+            "twbs/bootstrap": "type::bower",
+            "swiftmailer/swiftmailer": [
+                "/.*",
+                "phpunit.xml.dist",
+                "doc",
+                "tests"
+            ]
+        }
+        ...
+    }
+    ...
+```
+
 
