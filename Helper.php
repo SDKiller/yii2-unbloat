@@ -9,6 +9,7 @@ namespace zyx\unbloat;
 
 use Composer\Script\CommandEvent;
 use yii\helpers\FileHelper;
+use yii\helpers\StringHelper;
 
 
 class Helper
@@ -27,9 +28,6 @@ class Helper
 
         if (array_key_exists('ignore', $extra) && !empty($extra['ignore']) && is_array($extra['ignore'])) {
 
-            /** @var \Composer\Autoload\ClassLoader() $loader */
-            //$loader = require_once( __DIR__ .DIRECTORY_SEPARATOR . 'autoload.php');
-
             foreach ($extra['ignore'] as $extension => &$ignored) {
 
                 if (empty ($ignored)) {
@@ -37,8 +35,8 @@ class Helper
                     continue;
                 }
 
-                $path = static::getPackagePath($extension);
-                if ($path === false) {
+                $extension_path = static::getPackagePath($extension);
+                if ($extension_path === false) {
                     echo 'Directory not found for package: "' . $extension .'"' . PHP_EOL;
                     continue;
                 }
@@ -47,15 +45,15 @@ class Helper
                     if ($ignored === 'type::bower') {
                         $bower_ignored = [];
                         //lookup for bower.json file of extension
-                        $bower_path = FileHelper::normalizePath($path . '/bower.json');
+                        $bower_path = FileHelper::normalizePath($extension_path . '/bower.json');
                         if (is_file($bower_path)) {
                             $bower_ignored = static::parseBower($bower_path);
                         } else {
                             echo 'File bower.json not found for package: "' . $extension .'"' . PHP_EOL;
                         }
 
-                        if (empty ($bower_ignored)) {
-                            echo 'Could not parse bower.json or empty ignored attribute for package: "' . $extension .'"' . PHP_EOL;
+                        if (empty($bower_ignored)) {
+                            echo 'Could not parse bower.json or empty ignored attribute for package: "' . $extension . '"' . PHP_EOL;
                             continue;
                         }
 
@@ -73,11 +71,72 @@ class Helper
 
                 echo 'Processing ignored list for package: "' . $extension .'" ...' . PHP_EOL;
 
-                //TODO
+                $dirs = [];
+                $files = [];
+                $excluded_files = [];
+
+                foreach ($ignored as $item) {
+                    if (strpos($item, '!') === 0) {
+                        //excluded in 'ignore'
+                        $pattern = StringHelper::byteSubstr($item, 1, StringHelper::byteLength($item));
+                        if (strpos($pattern, '*') !== false) {
+                            $fs = FileHelper::findFiles($extension_path, ['only' => [$pattern]]);
+                            if (!empty($fs) && is_array($fs)) {
+                                foreach ($fs as $f) {
+                                    $excluded_files[] = $f;
+                                }
+                            }
+                            //TODO - FileHelper has no method to find directories against wilcard
+                        } else {
+                            $path = FileHelper::normalizePath($extension_path . '/' . $pattern);
+                            if (is_file($path) && !is_link($path)) {
+                                $excluded_files[] = $path;
+                            }
+                        }
+                    } else {
+                        $pattern = $item;
+                        if (strpos($pattern, '*') !== false) {
+                            $fs = FileHelper::findFiles($extension_path, ['only' => [$pattern]]);
+                            if (!empty($fs) && is_array($fs)) {
+                                foreach ($fs as $f) {
+                                    $files[] = $f;
+                                }
+                            }
+                            //TODO - FileHelper has no method to find directories against wilcard
+                        } else {
+                            $path = FileHelper::normalizePath($extension_path . '/' . $pattern);
+                            if (is_file($path) && !is_link($path)) {
+                                $files[] = $path;
+                            } elseif (is_dir($path)) {
+                                $dirs[] = $path;
+                            }
+                        }
+                    }
+                }
+
+                foreach ($dirs as $dir) {
+                    FileHelper::removeDirectory($dir);
+                    clearstatcache();
+                    if (is_dir($dir)) {
+                        echo 'Failed to remove directory: ' . $dir . PHP_EOL;
+                    }
+                }
+
+                foreach ($files as $file) {
+                    if (!in_array($file, $excluded_files, true)) {
+                        if (!unlink($file)) {
+                            echo 'Failed to remove file: ' . $file . PHP_EOL;
+                        }
+                    }
+                }
+
+                echo '... done' . PHP_EOL;
             }
+
+        } else {
+            
+            echo 'Ignore section of composer.json is empty' . PHP_EOL;
         }
-
-
     }
 
     public static function getPackagePath($name)
