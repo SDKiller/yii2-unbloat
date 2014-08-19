@@ -1,4 +1,4 @@
-Post-create & post-update cleanup for Yii2-Composer project
+Post-update cleanup for Yii2-Composer project
 ===========================================================
 
 Have you suffered from tons of not nesessary for you in production files (like `docs`, `tests`, etc.) installed by Composer with almost every package?
