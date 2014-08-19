@@ -43,7 +43,8 @@ Add the following to `composer.json` file in your project root:
                 "/.*",
                 "phpunit.xml.dist",
                 "doc",
-                "tests"
+                "tests",
+                "notes"
             ]
         }
         ...
