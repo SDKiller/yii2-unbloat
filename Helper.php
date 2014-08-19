@@ -10,7 +10,7 @@ namespace zyx\unbloat;
 use Composer\Script\CommandEvent;
 
 
-class UnbloatHelper
+class Helper
 {
     /**
      * Deletes directories listed in ... TODO
