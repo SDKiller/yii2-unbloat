@@ -22,9 +22,7 @@ class Helper
     {
         echo 'Running post-cmd' . PHP_EOL;
 
-        $composer = $event->getComposer();
-        $package = $composer->getPackage();
-        $extra = $package->getExtra();
+        $extra = $event->getComposer()->getPackage()->getExtra();
 
         if (array_key_exists('ignore', $extra) && !empty($extra['ignore']) && is_array($extra['ignore'])) {
 
@@ -134,7 +132,7 @@ class Helper
             }
 
         } else {
-            
+
             echo 'Ignore section of composer.json is empty' . PHP_EOL;
         }
     }
