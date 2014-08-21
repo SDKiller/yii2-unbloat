@@ -1,6 +1,6 @@
 {
     "name": "zyx/yii2-unbloat",
-    "description": "Post-create & post-update cleanup for Yii2-Composer project",
+    "description": "Post-update cleanup for Yii2-Composer project",
     "keywords": ["yii2", "composer"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
